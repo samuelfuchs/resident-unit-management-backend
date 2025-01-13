@@ -34,6 +34,14 @@ This is the backend for the **Resident Management System**, providing APIs to ma
 
 - **Role Validation**:
   - Users are validated against their roles for access to specific features (e.g., a receptionist cannot create an admin).
+  
+- **Forgot Password**:
+  - Users can request a password reset token via the `/forgot-password` endpoint.
+  - A one-time token is generated and sent as part of a URL.
+
+- **Reset Password**:
+  - Users can reset their password using the token provided via `/reset-password/:token`.
+  - Tokens are single-use and have a predefined expiration time.
 
 ---
 
@@ -75,7 +83,19 @@ This is the backend for the **Resident Management System**, providing APIs to ma
 
 - **Default Status**:
   - New users are assigned a default status of `active`.
+  
+### Rate Limiting
+- **Sensitive Endpoints**:
+  - Rate limiting is applied to endpoints like `/login` and `/forgot-password` to mitigate abuse.
 
+### Password Reset Workflow
+- **Token Validation**:
+  - Reset tokens are tied to a user and stored securely in the database.
+  - Tokens are single-use and time-bound.
+
+- **Reset Workflow**:
+  - Users receive a reset link containing the token.
+  - The `/reset-password/:token` endpoint validates the token and allows password updates.
 
 ---
 
