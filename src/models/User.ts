@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IUser extends Document {
   id: string;
   email: string;
+  password: string;
   name: string;
   lastName: string;
   role: "admin" | "receptionist" | "resident";
@@ -25,9 +26,14 @@ export interface IUser extends Document {
 const UserSchema: Schema = new Schema(
   {
     email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
     name: { type: String, required: true },
     lastName: { type: String, required: true },
-    role: { type: String, enum: ["admin", "receptionist", "resident"], required: true },
+    role: {
+      type: String,
+      enum: ["admin", "receptionist", "resident"],
+      required: true,
+    },
     phone: { type: String, required: true },
     address: { type: String },
     zipCode: { type: Number },
@@ -45,7 +51,7 @@ const UserSchema: Schema = new Schema(
       },
     ],
   },
-  { timestamps: true } 
+  { timestamps: true }
 );
 
 export default mongoose.model<IUser>("User", UserSchema);

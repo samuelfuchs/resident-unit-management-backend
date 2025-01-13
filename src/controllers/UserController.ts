@@ -12,10 +12,24 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, name, lastName, role, phone, address, zipCode, city, state, unitNumber, status } = req.body;
+    const {
+      email,
+      password,
+      name,
+      lastName,
+      role,
+      phone,
+      address,
+      zipCode,
+      city,
+      state,
+      unitNumber,
+      status,
+    } = req.body;
 
     const newUser = new User({
       email,
+      password,
       name,
       lastName,
       role,
