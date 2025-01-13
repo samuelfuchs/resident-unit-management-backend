@@ -35,9 +35,20 @@ export const getUsers = async (req: Request, res: Response) => {
     const query: any = {};
 
     if (search) {
+      const normalizedSearch = (search as string)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      const regex = new RegExp(normalizedSearch, "i");
       query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
+        { name: regex },
+        { lastName: regex },
+        { email: regex },
+        { phone: regex },
+        { address: regex },
+        { city: regex },
+        { state: regex },
+        { unitNumber: regex },
       ];
     }
 
