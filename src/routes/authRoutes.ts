@@ -4,12 +4,12 @@ import {
   forgotPassword,
   resetPassword,
 } from "../controllers/authController";
-import { authMiddleware } from "../middlewares/authMiddleware";
+import { passwordResetRateLimiter } from "src/middlewares/rateLimiter";
 
 const router = express.Router();
 
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
+router.post("/forgot-password", passwordResetRateLimiter, forgotPassword);
+router.post("/reset-password", passwordResetRateLimiter, resetPassword);
 router.post("/login", login);
 
 export default router;
