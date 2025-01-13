@@ -69,23 +69,23 @@ export const forgotPassword = async (
 ): Promise<void> => {
   try {
     const { email } = req.body;
-
     const user = await User.findOne({ email });
+
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
     }
+    const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, {
+      expiresIn: "15m",
+    });
 
-    const token = jwt.sign(
-      { email: user.email },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "15m" }
-    );
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+    await user.save();
 
-    //@TODO replace with email service later
     res.status(200).json({
-      message: "Password reset token generated.",
-      token,
+      message: "Reset token generated. Please check your email.",
+      resetToken,
     });
   } catch (error) {
     res.status(500).json({ message: "Error generating reset token", error });
@@ -99,21 +99,22 @@ export const resetPassword = async (
   try {
     const { token, newPassword } = req.body;
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-      email: string;
-    };
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date() },
+    });
 
-    const user = await User.findOne({ email: decoded.email });
     if (!user) {
-      res.status(404).json({ message: "Invalid token or user not found" });
+      res.status(400).json({ message: "Invalid or expired reset token." });
       return;
     }
 
-    //@TODO hash password with bcrypt!!
     user.password = newPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
     await user.save();
 
-    res.status(200).json({ message: "Password updated successfully" });
+    res.status(200).json({ message: "Password reset successful." });
   } catch (error) {
     res.status(400).json({ message: "Invalid or expired token", error });
   }
