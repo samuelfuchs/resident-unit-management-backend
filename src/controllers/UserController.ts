@@ -3,6 +3,23 @@ import User from "../models/User";
 
 const validSortFields = ["name", "email", "createdAt", "role", "status"];
 
+export const getMe = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user information" });
+  }
+};
+
 export const getUsers = async (req: Request, res: Response) => {
   try {
     const {
