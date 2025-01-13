@@ -6,14 +6,32 @@ This is the backend for the **Resident Management System**, providing APIs to ma
 ---
 
 ## **Features**
-- **User Management**: Create, update, delete, and retrieve users.
-- **Resident Management**: Manage residents, including emergency contacts.
-- **Unit Management**: Manage details for residential units.
-- **Authentication**: 
-  - JWT-based authentication for secure access.
-  - Role-based access control (`admin`, `receptionist`, `resident`).
-- **Validation**: Input validation with `express-validator`.
-- **Error Handling**: Centralized error handling for consistent responses.
+ 
+### **User Management**: Create, update, delete, and retrieve users.
+- **User Listing**: Retrieve all users with details.
+- **Create Users**: Admins and receptionists can create users with role validation.
+- **Update Users**: Allows updating user details.
+- **Delete Users:**: 
+  - Only admins are allowed to delete users.
+  - Secure role-based middleware ensures restricted access.
+
+--- 
+
+### **Role-Based Access Control**
+
+**Admins:** 
+
+- Full access to create, read, update, and delete users.
+- Can assign any role to new users.
+
+**Receptionists:** 
+
+- Can create users, but not with the admin role.
+- Cannot delete users.
+
+**Residents:** 
+-	Restricted to viewing their profile only.
+-	Cannot create, update, or delete users.
 
 ---
 
