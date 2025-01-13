@@ -2,6 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { IUser } from "src/models/User";
 
+declare module "express-serve-static-core" {
+  interface Request {
+    user: any;
+  }
+}
+
 export const authMiddleware = (
   req: Request,
   res: Response,
@@ -18,7 +24,8 @@ export const authMiddleware = (
       token,
       process.env.JWT_SECRET as string
     ) as IUser;
-    // req.user = decoded;
+    req.user = decoded;
+    console.log("@authMiddleware req.user", req.user);
     next();
   } catch (err) {
     res;
