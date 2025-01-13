@@ -12,7 +12,6 @@ export const roleValidationMiddleware = (
 
   const loggedInUserRole = req.user.role;
   const intendedRole = req.body.role;
-  console.log("loggedInUserRole", loggedInUserRole);
   if (loggedInUserRole === "resident") {
     res.status(403).json({ message: "Residents cannot create new users." });
     return;
