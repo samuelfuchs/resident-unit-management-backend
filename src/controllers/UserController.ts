@@ -10,6 +10,30 @@ export const getUsers = async (req: Request, res: Response) => {
   }
 };
 
+export const updateUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update user" });
+  }
+};
+
 export const createUser = async (req: Request, res: Response) => {
   try {
     const {
