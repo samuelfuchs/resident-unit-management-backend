@@ -83,9 +83,13 @@ export const forgotPassword = async (
     user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
+    //@TODO change the URL
+    const domain = process.env.PORT;
+    const resetLink = `http://localhost:${domain}/api/auth/reset-password/${resetToken}`;
+
     res.status(200).json({
       message: "Reset token generated. Please check your email.",
-      resetToken,
+      resetLink,
     });
   } catch (error) {
     res.status(500).json({ message: "Error generating reset token", error });
@@ -96,10 +100,16 @@ export const resetPassword = async (
   req: Request,
   res: Response
 ): Promise<void> => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+
   try {
-    const { token, newPassword } = req.body;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+      id: string;
+    };
 
     const user = await User.findOne({
+      _id: decoded.id,
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: new Date() },
     });
