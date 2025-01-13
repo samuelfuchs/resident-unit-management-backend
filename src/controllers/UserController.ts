@@ -3,7 +3,25 @@ import User from "../models/User";
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.find();
+    const { search, role, status } = req.query;
+
+    const query: any = {};
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (role) {
+      query.role = role;
+    }
+
+    if (status) {
+      query.status = status;
+    }
+
+    const users = await User.find(query);
     res.status(200).json(users);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch users" });
