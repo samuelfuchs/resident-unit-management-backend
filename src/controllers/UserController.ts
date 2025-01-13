@@ -1,10 +1,61 @@
 import { Request, Response } from "express";
 import User from "../models/User";
 
+const validSortFields = ["name", "email", "createdAt", "role", "status"];
+
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.find();
-    res.status(200).json(users);
+    const {
+      search,
+      role,
+      status,
+      page = 1,
+      limit = 10,
+      sortField,
+      sortOrder,
+    } = req.query;
+
+    const query: any = {};
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (role) {
+      query.role = role;
+    }
+
+    if (status) {
+      query.status = status;
+    }
+
+    const pageNumber = parseInt(page as string, 10) || 1;
+    const limitNumber = parseInt(limit as string, 10) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const sort: any = {};
+    if (sortField && validSortFields.includes(sortField as string)) {
+      sort[sortField as string] = sortOrder === "desc" ? -1 : 1;
+    } else {
+      sort["createdAt"] = -1;
+    }
+
+    const users = await User.find(query)
+      .sort(sort)
+      .skip(skip)
+      .limit(limitNumber);
+
+    const totalUsers = await User.countDocuments(query);
+
+    res.status(200).json({
+      users,
+      totalUsers,
+      totalPages: Math.ceil(totalUsers / limitNumber),
+      currentPage: pageNumber,
+    });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch users" });
   }
