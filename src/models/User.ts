@@ -21,6 +21,8 @@ export interface IUser extends Document {
     phone: string;
     relationship: string;
   }[];
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 
 const UserSchema: Schema = new Schema(
@@ -50,6 +52,8 @@ const UserSchema: Schema = new Schema(
         relationship: { type: String, required: true },
       },
     ],
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );

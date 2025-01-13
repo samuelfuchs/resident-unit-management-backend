@@ -5,7 +5,7 @@ import {
   getMe,
   getUsers,
   updateUser,
-} from "src/controllers/userController";
+} from "src/controllers/UserController";
 import { adminOnlyMiddleware } from "src/middlewares/adminOnlyMiddleware";
 import { authMiddleware } from "src/middlewares/authMiddleware";
 import { roleValidationMiddleware } from "src/middlewares/roleValidationMiddleware";
