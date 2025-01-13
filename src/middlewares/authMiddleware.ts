@@ -25,7 +25,6 @@ export const authMiddleware = (
       process.env.JWT_SECRET as string
     ) as IUser;
     req.user = decoded;
-    console.log("@authMiddleware req.user", req.user);
     next();
   } catch (err) {
     res;
