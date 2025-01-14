@@ -171,3 +171,23 @@ export const deleteUser = async (
     res.status(500).json({ error: "Failed to delete user" });
   }
 };
+
+export const getUserById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id).select("-password");
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user by ID" });
+  }
+};
