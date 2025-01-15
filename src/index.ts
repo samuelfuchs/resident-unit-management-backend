@@ -9,10 +9,14 @@ dotenv.config();
 
 const app: Express = express();
 app.use(express.json());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://roger-residencia.netlify.app",
+];
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
