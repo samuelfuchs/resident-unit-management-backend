@@ -66,8 +66,60 @@ export const createUnit = async (
 
 export const getUnits = async (req: Request, res: Response): Promise<void> => {
   try {
-    const units = await Unit.find().populate("owner tenant");
-    res.status(200).json(units);
+    const {
+      search,
+      type,
+      floor,
+      page = 1,
+      limit = 10,
+      sortField,
+      sortOrder,
+    } = req.query;
+
+    const query: any = {};
+
+    if (search) {
+      const normalizedSearch = (search as string)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      const regex = new RegExp(normalizedSearch, "i");
+      query.$or = [{ number: regex }, { type: regex }];
+    }
+
+    if (type && type !== "undefined") {
+      query.type = type;
+    }
+
+    if (floor && !isNaN(Number(floor))) {
+      query.floor = Number(floor);
+    }
+
+    const pageNumber = parseInt(page as string, 10) || 1;
+    const limitNumber = parseInt(limit as string, 10) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const sort: any = {};
+    if (sortField) {
+      sort[sortField as string] = sortOrder === "desc" ? -1 : 1;
+    } else {
+      sort["createdAt"] = -1;
+    }
+
+    const units = await Unit.find(query)
+      .populate("owner tenant")
+      .sort(sort)
+      .skip(skip)
+      .limit(limitNumber);
+
+    const totalUnits = await Unit.countDocuments(query);
+
+    res.status(200).json({
+      units,
+      totalUnits,
+      totalPages: Math.ceil(totalUnits / limitNumber),
+      currentPage: pageNumber,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch units" });
