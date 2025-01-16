@@ -191,3 +191,20 @@ export const getUserById = async (
     res.status(500).json({ error: "Failed to fetch user by ID" });
   }
 };
+
+export const getAdminDashboardStats = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalResidents = await User.countDocuments({ role: "resident" });
+
+    res.status(200).json({
+      totalUsers,
+      totalResidents,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch admin dashboard stats" });
+  }
+};
