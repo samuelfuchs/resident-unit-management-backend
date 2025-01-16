@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   createUser,
   deleteUser,
+  getAdminDashboardStats,
   getMe,
   getUserById,
   getUsers,
@@ -19,5 +20,11 @@ router.get("/:id", getUserById);
 router.post("/", authMiddleware, roleValidationMiddleware, createUser);
 router.put("/:id", authMiddleware, roleValidationMiddleware, updateUser);
 router.delete("/:id", authMiddleware, adminOnlyMiddleware, deleteUser);
+router.get(
+  "/admin/stats",
+  authMiddleware,
+  adminOnlyMiddleware,
+  getAdminDashboardStats
+);
 
 export default router;
