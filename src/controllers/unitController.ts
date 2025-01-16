@@ -115,3 +115,55 @@ export const deleteUnit = async (
     res.status(500).json({ error: "Failed to delete unit." });
   }
 };
+
+export const updateUnit = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { number, floor, squareFootage, type, owner, parkingSpots, tenant } =
+      req.body;
+
+    const unit = await Unit.findById(id);
+    if (!unit) {
+      res.status(404).json({ error: "Unit not found." });
+      return;
+    }
+
+    if (owner && owner.length > 0) {
+      const ownerExists = await User.find({ _id: { $in: owner } });
+      if (ownerExists.length !== owner.length) {
+        res.status(400).json({ error: "One or more owners do not exist." });
+        return;
+      }
+    }
+
+    if (tenant && tenant.length > 0) {
+      const tenantExists = await User.find({ _id: { $in: tenant } });
+      if (tenantExists.length !== tenant.length) {
+        res.status(400).json({ error: "One or more tenants do not exist." });
+        return;
+      }
+    }
+
+    const updatedUnit = await Unit.findByIdAndUpdate(
+      id,
+      {
+        number,
+        floor,
+        squareFootage,
+        type,
+        owner,
+        parkingSpots,
+        tenant,
+      },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json(updatedUnit);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update unit." });
+  }
+};
