@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
+import unitRoutes from "./routes/unitRoutes";
 import connectDB from "./config/db";
 import cors from "cors";
 
@@ -24,6 +25,8 @@ app.use(
 
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api", unitRoutes);
+
 connectDB();
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
