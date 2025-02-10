@@ -1,12 +1,13 @@
-import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
+dotenv.config();
+
+import express, { Express, Request, Response } from "express";
 import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
 import unitRoutes from "./routes/unitRoutes";
 import connectDB from "./config/db";
 import cors from "cors";
-
-dotenv.config();
+import paymentRoutes from "./routes/paymentRoutes";
 
 const app: Express = express();
 app.use(express.json());
@@ -26,6 +27,7 @@ app.use(
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", unitRoutes);
+app.use("/api/payments", paymentRoutes);
 
 connectDB();
 
@@ -35,6 +37,6 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
 // server.keepAliveTimeout = 120 * 1000;
-// server.headersTimeout = 120 * 1000;  
+// server.headersTimeout = 120 * 1000;
 //  "email": "admin2@example.com",
 // "password": "password123",
