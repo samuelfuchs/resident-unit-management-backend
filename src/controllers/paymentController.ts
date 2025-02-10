@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { stripe } from "../config/stripe";
 
-// export class PaymentController {
 export const createPaymentIntent = async (req: Request, res: Response) => {
   try {
     const { amount, userId, description } = req.body;
@@ -42,4 +41,3 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
     });
   }
 };
-// }
