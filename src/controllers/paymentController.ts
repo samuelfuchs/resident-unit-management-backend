@@ -41,3 +41,40 @@ export const getPaymentHistory = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const cancelPayment = async (req: Request, res: Response) => {
+  try {
+    const { paymentIntentId } = req.params;
+
+    const paymentIntent = await stripe.paymentIntents.cancel(paymentIntentId);
+
+    res.status(200).json({
+      status: paymentIntent.status,
+      message: "Payment canceled successfully",
+    });
+  } catch (error) {
+    console.error("Payment cancellation error:", error);
+    res.status(500).json({
+      error: "Failed to cancel payment",
+    });
+  }
+};
+
+export const updatePayment = async (req: Request, res: Response) => {
+  try {
+    const { paymentIntentId } = req.params;
+    const { amount, description } = req.body;
+
+    const paymentIntent = await stripe.paymentIntents.update(paymentIntentId, {
+      ...(amount && { amount: Math.round(amount * 100) }),
+      ...(description && { description }),
+    });
+
+    res.status(200).json(paymentIntent);
+  } catch (error) {
+    console.error("Payment update error:", error);
+    res.status(500).json({
+      error: "Failed to update payment",
+    });
+  }
+};

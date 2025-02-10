@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
   createPaymentIntent,
   getPaymentHistory,
+  cancelPayment,
+  updatePayment,
 } from "../controllers/paymentController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { adminOnlyMiddleware } from "../middlewares/adminOnlyMiddleware";
@@ -20,6 +22,20 @@ router.get(
   authMiddleware,
   adminOnlyMiddleware,
   getPaymentHistory
+);
+
+router.post(
+  "/cancel/:paymentIntentId",
+  authMiddleware,
+  adminOnlyMiddleware,
+  cancelPayment
+);
+
+router.put(
+  "/update/:paymentIntentId",
+  authMiddleware,
+  adminOnlyMiddleware,
+  updatePayment
 );
 
 export default router;
