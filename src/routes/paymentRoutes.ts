@@ -4,6 +4,7 @@ import {
   getPaymentHistory,
   cancelPayment,
   updatePayment,
+  getUserPayments,
 } from "../controllers/paymentController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { adminOnlyMiddleware } from "../middlewares/adminOnlyMiddleware";
@@ -37,5 +38,7 @@ router.put(
   adminOnlyMiddleware,
   updatePayment
 );
+
+router.get("/my-payments", authMiddleware, getUserPayments);
 
 export default router;

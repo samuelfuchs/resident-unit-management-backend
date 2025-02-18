@@ -78,3 +78,37 @@ export const updatePayment = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getUserPayments = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { limit = 10 } = req.query;
+    const limitNumber = parseInt(limit as string, 10);
+
+    const paymentIntents = await stripe.paymentIntents.search({
+      query: `metadata['userId']:'${req.user.id}'`,
+      limit: limitNumber,
+    });
+
+    if (!paymentIntents.data || paymentIntents.data.length === 0) {
+      res.status(200).json({
+        payments: [],
+        totalPayments: 0,
+        message: "No payments found for this user",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      payments: paymentIntents.data,
+      hasMore: paymentIntents.has_more,
+    });
+  } catch (error) {
+    console.error("User payments fetch error:", error);
+    res.status(500).json({
+      error: "Failed to fetch user payments",
+    });
+  }
+};
