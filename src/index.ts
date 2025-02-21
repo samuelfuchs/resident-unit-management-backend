@@ -8,9 +8,16 @@ import unitRoutes from "./routes/unitRoutes";
 import connectDB from "./config/db";
 import cors from "cors";
 import paymentRoutes from "./routes/paymentRoutes";
+import billRoutes from "./routes/billRoutes";
 
 const app: Express = express();
+
+// Handle raw body for Stripe webhooks
+app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
+
+// Regular JSON parsing for other routes
 app.use(express.json());
+
 const allowedOrigins = [
   "http://localhost:3000",
   "https://roger-residencia.netlify.app",
@@ -28,6 +35,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", unitRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/bills", billRoutes);
 
 connectDB();
 
