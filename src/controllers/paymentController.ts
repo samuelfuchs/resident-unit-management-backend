@@ -2,42 +2,54 @@ import { Request, Response } from "express";
 import { stripe } from "../config/stripe";
 import Stripe from "stripe";
 import Bill from "../models/Bill";
+import { StatusCodes } from "http-status-codes";
+import { IBill } from "../models/Bill";
 
 export const createPaymentIntent = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const { amount, userId, description } = req.body;
+    const { billId } = req.body;
 
-    // Validate input
-    if (!amount || amount <= 0) {
-      res.status(400).json({ error: "Invalid amount" });
+    const bill = (await Bill.findOne({
+      _id: billId,
+      resident: req.user.id,
+      status: "pending",
+    }).lean()) as IBill;
+
+    if (!bill) {
+      res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: "Bill not found or already paid",
+      });
       return;
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
+      amount: Math.round(bill.amount * 100),
       currency: "usd",
-      description,
       metadata: {
-        userId,
-        adminId: req.user.id,
-      },
-      // Add automatic payment methods
-      automatic_payment_methods: {
-        enabled: true,
+        billId: (bill._id as string).toString(),
+        residentId: req.user.id,
+        description: bill.description,
       },
     });
 
-    res.status(200).json({
-      clientSecret: paymentIntent.client_secret,
+    bill.paymentIntentId = paymentIntent.id;
+    await Bill.findByIdAndUpdate(bill._id, {
       paymentIntentId: paymentIntent.id,
     });
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      clientSecret: paymentIntent.client_secret,
+    });
   } catch (error) {
-    console.error("Payment intent creation error:", error);
-    res.status(500).json({
-      error: "Failed to create payment intent",
+    console.error("Payment Intent Error:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Error creating payment intent",
     });
   }
 };
@@ -47,48 +59,90 @@ export const handleWebhook = async (
   res: Response
 ): Promise<void> => {
   const sig = req.headers["stripe-signature"];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!sig || !webhookSecret) {
-    res
-      .status(400)
-      .json({ error: "Missing stripe signature or webhook secret" });
-    return;
-  }
 
   try {
-    const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
+      res.status(400).send("Missing signature or webhook secret");
+      return;
+    }
+
+    const event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
 
     switch (event.type) {
       case "payment_intent.succeeded":
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log("Payment succeeded:", paymentIntent.id);
-
-        // Update associated bill if it exists
-        if (paymentIntent.metadata.billId) {
-          await Bill.findByIdAndUpdate(paymentIntent.metadata.billId, {
-            status: "paid",
-            paymentIntentId: paymentIntent.id,
-            paidAt: new Date(),
-          });
-        }
+        await handleSuccessfulPayment(paymentIntent);
         break;
 
       case "payment_intent.payment_failed":
-        const failedPayment = event.data.object as Stripe.PaymentIntent;
-        console.log("Payment failed:", failedPayment.id);
+        const failedPaymentIntent = event.data.object as Stripe.PaymentIntent;
+        await handleFailedPayment(failedPaymentIntent);
         break;
 
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
 
-    res.json({ received: true });
-  } catch (err) {
-    console.error("Webhook error:", err);
-    res.status(400).json({ error: "Webhook signature verification failed" });
+    res.status(200).json({ received: true });
+  } catch (err: any) {
+    console.error("Webhook Error:", err.message);
+    res.status(400).send(`Webhook Error: ${err.message}`);
   }
 };
+
+async function handleSuccessfulPayment(
+  paymentIntent: Stripe.PaymentIntent
+): Promise<void> {
+  try {
+    const bill = await Bill.findOne({ paymentIntentId: paymentIntent.id });
+    if (!bill) {
+      console.error(`No bill found for payment intent: ${paymentIntent.id}`);
+      return;
+    }
+
+    await Bill.findByIdAndUpdate(bill._id, {
+      status: "paid",
+      paidAt: new Date(),
+      paymentDetails: {
+        transactionId: paymentIntent.id,
+        amount: paymentIntent.amount / 100,
+        currency: paymentIntent.currency,
+        paymentMethod: paymentIntent.payment_method_types[0],
+      },
+    });
+  } catch (error) {
+    console.error("Error handling successful payment:", error);
+  }
+}
+
+async function handleFailedPayment(
+  paymentIntent: Stripe.PaymentIntent
+): Promise<void> {
+  try {
+    const bill = await Bill.findOne({ paymentIntentId: paymentIntent.id });
+    if (!bill) {
+      console.error(`No bill found for payment intent: ${paymentIntent.id}`);
+      return;
+    }
+
+    await Bill.findByIdAndUpdate(bill._id, {
+      status: "failed",
+      paymentDetails: {
+        transactionId: paymentIntent.id,
+        amount: paymentIntent.amount / 100,
+        currency: paymentIntent.currency,
+        paymentMethod: paymentIntent.payment_method_types[0],
+        errorMessage: paymentIntent.last_payment_error?.message,
+      },
+    });
+  } catch (error) {
+    console.error("Error handling failed payment:", error);
+  }
+}
 
 export const getPaymentHistory = async (req: Request, res: Response) => {
   try {

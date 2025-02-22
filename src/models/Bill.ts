@@ -1,30 +1,42 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IBill extends Document {
-  residentId: mongoose.Types.ObjectId;
+  resident: mongoose.Types.ObjectId;
   amount: number;
   description: string;
   dueDate: Date;
-  status: "pending" | "paid" | "overdue";
+  status: "pending" | "paid" | "failed";
   paymentIntentId?: string;
-  createdBy: mongoose.Types.ObjectId;
   paidAt?: Date;
+  paymentDetails?: {
+    transactionId: string;
+    amount: number;
+    currency: string;
+    paymentMethod: string;
+    errorMessage?: string;
+  };
 }
 
 const BillSchema = new Schema(
   {
-    residentId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    resident: { type: Schema.Types.ObjectId, ref: "User", required: true },
     amount: { type: Number, required: true },
     description: { type: String, required: true },
     dueDate: { type: Date, required: true },
     status: {
       type: String,
-      enum: ["pending", "paid", "overdue"],
+      enum: ["pending", "paid", "failed"],
       default: "pending",
     },
     paymentIntentId: { type: String },
-    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     paidAt: { type: Date },
+    paymentDetails: {
+      transactionId: String,
+      amount: Number,
+      currency: String,
+      paymentMethod: String,
+      errorMessage: String,
+    },
   },
   { timestamps: true }
 );

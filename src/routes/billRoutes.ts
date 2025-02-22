@@ -1,14 +1,16 @@
-import { Router } from "express";
+import express from "express";
 import {
   createBill,
   getResidentBills,
   updateBillStatus,
   getBillsByResidentId,
+  getBillPaymentStatus,
+  getPaymentHistory,
 } from "../controllers/billController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { adminOnlyMiddleware } from "../middlewares/adminOnlyMiddleware";
 
-const router = Router();
+const router = express.Router();
 
 router.post("/", authMiddleware, adminOnlyMiddleware, createBill);
 router.get("/my-bills", authMiddleware, getResidentBills);
@@ -24,5 +26,7 @@ router.get(
   adminOnlyMiddleware,
   getBillsByResidentId
 );
+router.get("/:id/payment-status", authMiddleware, getBillPaymentStatus);
+router.get("/payment-history", authMiddleware, getPaymentHistory);
 
 export default router;

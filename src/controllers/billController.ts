@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Bill from "../models/Bill";
+import { StatusCodes } from "http-status-codes";
 
 export const createBill = async (
   req: Request,
@@ -7,9 +8,10 @@ export const createBill = async (
 ): Promise<void> => {
   try {
     const { residentId, amount, description, dueDate } = req.body;
+    console.log(req.body);
 
     const bill = new Bill({
-      residentId,
+      resident: residentId,
       amount,
       description,
       dueDate,
@@ -30,7 +32,7 @@ export const getResidentBills = async (
 ): Promise<void> => {
   try {
     const bills = await Bill.find({
-      residentId: req.user.id,
+      resident: req.user.id,
     }).sort({ dueDate: -1 });
 
     res.status(200).json(bills);
@@ -77,13 +79,67 @@ export const getBillsByResidentId = async (
   try {
     const { residentId } = req.params;
 
-    const bills = await Bill.find({ residentId })
+    const bills = await Bill.find({ resident: residentId })
       .sort({ dueDate: -1 })
-      .populate("residentId", "name email"); 
+      .populate("resident", "name email");
 
     res.status(200).json(bills);
   } catch (error) {
     console.error("Get resident bills error:", error);
     res.status(500).json({ error: "Failed to fetch resident bills" });
+  }
+};
+
+export const getBillPaymentStatus = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const bill = await Bill.findOne({
+      _id: req.params.id,
+      resident: req.user.id,
+    });
+
+    if (!bill) {
+      res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: "Bill not found",
+      });
+      return;
+    }
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: {
+        status: bill.status,
+        paymentDetails: bill.paymentDetails,
+      },
+    });
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Error fetching bill payment status",
+    });
+  }
+};
+
+export const getPaymentHistory = async (req: Request, res: Response) => {
+  try {
+    const bills = await Bill.find({
+      resident: req.user.id,
+      status: { $in: ["paid", "failed"] },
+    })
+      .sort({ paidAt: -1 })
+      .select("amount description status paymentDetails paidAt dueDate");
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: bills,
+    });
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Error fetching payment history",
+    });
   }
 };
