@@ -7,6 +7,7 @@ import {
   getUserById,
   getUsers,
   updateUser,
+  getUserDashboardStats,
 } from "src/controllers/userController";
 import { adminOnlyMiddleware } from "src/middlewares/adminOnlyMiddleware";
 import { authMiddleware } from "src/middlewares/authMiddleware";
@@ -26,5 +27,6 @@ router.get(
   adminOnlyMiddleware,
   getAdminDashboardStats
 );
+router.get("/resident/stats", authMiddleware, getUserDashboardStats);
 
 export default router;
