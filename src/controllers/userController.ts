@@ -233,3 +233,81 @@ export const getAdminDashboardStats = async (
     res.status(500).json({ error: "Failed to fetch admin dashboard stats" });
   }
 };
+
+export const getUserDashboardStats = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    console.log("here");
+    const userId = req.user.id;
+    console.log("userId", userId);
+
+    const totalBills = await Bill.countDocuments({ resident: userId });
+    const pendingBills = await Bill.countDocuments({
+      resident: userId,
+      status: "pending",
+    });
+
+    const upcomingBills = await Bill.countDocuments({
+      resident: userId,
+      status: "pending",
+      dueDate: {
+        $gte: new Date(),
+        $lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    const overdueBills = await Bill.countDocuments({
+      resident: userId,
+      status: "pending",
+      dueDate: { $lt: new Date() },
+    });
+
+    const pendingAmount = await Bill.aggregate([
+      {
+        $match: {
+          resident: userId,
+          status: "pending",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    const paidBillsThisMonth = await Bill.countDocuments({
+      resident: userId,
+      status: "paid",
+      paidAt: {
+        $gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      },
+    });
+
+    const latestBill = await Bill.findOne({ resident: userId })
+      .sort({ createdAt: -1 })
+      .select("amount description dueDate status");
+
+    res.status(200).json({
+      bills: {
+        total: totalBills,
+        pending: pendingBills,
+        upcoming: upcomingBills,
+        overdue: overdueBills,
+        pendingAmount: pendingAmount[0]?.total || 0,
+        paidThisMonth: paidBillsThisMonth,
+      },
+      latestBill,
+      alerts: {
+        hasPendingBills: pendingBills > 0,
+        hasOverdueBills: overdueBills > 0,
+        hasUpcomingBills: upcomingBills > 0,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user dashboard stats" });
+  }
+};
