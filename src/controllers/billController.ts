@@ -159,13 +159,11 @@ export const getAllBills = async (
     } = req.query;
 
     const query: any = {};
-
-    // Add status filter if provided
+    
     if (status) {
       query.status = status;
     }
 
-    // Add search functionality
     if (search) {
       query.$or = [
         { description: new RegExp(search as string, "i") },
