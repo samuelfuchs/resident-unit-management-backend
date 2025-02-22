@@ -6,6 +6,7 @@ import {
   getBillsByResidentId,
   getBillPaymentStatus,
   getPaymentHistory,
+  getAllBills,
 } from "../controllers/billController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { adminOnlyMiddleware } from "../middlewares/adminOnlyMiddleware";
@@ -28,5 +29,6 @@ router.get(
 );
 router.get("/:id/payment-status", authMiddleware, getBillPaymentStatus);
 router.get("/payment-history", authMiddleware, getPaymentHistory);
+router.get("/", authMiddleware, adminOnlyMiddleware, getAllBills);
 
 export default router;

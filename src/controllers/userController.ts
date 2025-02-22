@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/User";
+import Bill from "../models/Bill";
 
 const validSortFields = ["name", "email", "createdAt", "role", "status"];
 
@@ -200,9 +201,33 @@ export const getAdminDashboardStats = async (
     const totalUsers = await User.countDocuments();
     const totalResidents = await User.countDocuments({ role: "resident" });
 
+    const totalBills = await Bill.countDocuments();
+    const unpaidBills = await Bill.countDocuments({ status: "pending" });
+    const paidBills = await Bill.countDocuments({ status: "paid" });
+
+    const unpaidBillsAmount = await Bill.aggregate([
+      { $match: { status: "pending" } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+
+    const paidBillsAmount = await Bill.aggregate([
+      { $match: { status: "paid" } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+
+    const pendingAmount = unpaidBillsAmount[0]?.total || 0;
+    const revenue = paidBillsAmount[0]?.total || 0;
+
     res.status(200).json({
       totalUsers,
       totalResidents,
+      bills: {
+        total: totalBills,
+        paid: paidBills,
+        unpaid: unpaidBills,
+        pendingAmount,
+        revenue,
+      },
     });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch admin dashboard stats" });
