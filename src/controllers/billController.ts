@@ -8,7 +8,6 @@ export const createBill = async (
 ): Promise<void> => {
   try {
     const { residentId, amount, description, dueDate } = req.body;
-    console.log(req.body);
 
     const bill = new Bill({
       resident: residentId,

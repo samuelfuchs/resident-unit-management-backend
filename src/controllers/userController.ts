@@ -239,9 +239,7 @@ export const getUserDashboardStats = async (
   res: Response
 ): Promise<void> => {
   try {
-    console.log("here");
     const userId = req.user.id;
-    console.log("userId", userId);
 
     const totalBills = await Bill.countDocuments({ resident: userId });
     const pendingBills = await Bill.countDocuments({
