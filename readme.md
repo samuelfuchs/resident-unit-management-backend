@@ -1,9 +1,41 @@
 # **Resident Management System - Backend**
 
-## **Description**
-This is the backend for the **Resident Management System**, providing APIs to manage users, residents, and units. The backend is built with **Node.js** and **Express** and follows **TypeScript** for robust type safety. It integrates **MongoDB** with **Mongoose** for database operations and supports secure authentication with **JWT**.
+## What I Learned
 
----
+Throughout this project, I enhanced my skills by:
+- Building a complete **end-to-end** solution using an **industry-standard** tech stack.
+- Gaining deeper expertise in **TypeScript**, ensuring improved type safety and better development practices.
+- Applying **MongoDB** and **Mongoose** for scalable and efficient database management.
+- Implementing secure **JWT authentication** to manage user sessions and protect resources.
+- Structuring the project following a **clean and modular architecture** for maintainability and scalability.
+- Documenting the development journey to track progress and highlight technical decisions.
+
+## **Description**
+This is the backend for the Resident Management System, designed to manage users, residents, and units efficiently.
+
+Built with **Node.js** and **Express**, the project leverages **TypeScript** to ensure robust type safety and improved code maintainability. For data persistence, it integrates **MongoDB** using **Mongoose** for flexible and powerful database operations.
+
+The system also features secure authentication via **JWT**, ensuring data protection and controlled access to resources.
+
+## Key Features
+- TypeScript for improved type safety and development experience.
+- Node.js + Express for fast and scalable API development.
+- MongoDB + Mongoose for flexible schema design and efficient database queries.
+- JWT Authentication to enhance security and manage user sessions.
+- Modular Architecture with clear separation of concerns (controllers/, models/, routes/, etc.).
+
+## Folder Structure
+``` bash
+/src
+ ├── config/         # Configuration settings
+ ├── controllers/    # Route handlers and business logic
+ ├── middlewares/    # Middleware for request processing
+ ├── models/         # MongoDB schemas with Mongoose
+ ├── routes/         # API route definitions
+ ├── types/          # TypeScript types
+ ├── index.ts        # Application entry point
+```
+
 ## Business Rules
 
 ### User Roles and Permissions
@@ -83,19 +115,6 @@ This is the backend for the **Resident Management System**, providing APIs to ma
 
 - **Default Status**:
   - New users are assigned a default status of `active`.
-  
-### Rate Limiting
-- **Sensitive Endpoints**:
-  - Rate limiting is applied to endpoints like `/login` and `/forgot-password` to mitigate abuse.
-
-### Password Reset Workflow
-- **Token Validation**:
-  - Reset tokens are tied to a user and stored securely in the database.
-  - Tokens are single-use and time-bound.
-
-- **Reset Workflow**:
-  - Users receive a reset link containing the token.
-  - The `/reset-password/:token` endpoint validates the token and allows password updates.
 
 ---
 
