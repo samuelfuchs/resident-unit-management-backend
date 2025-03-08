@@ -1,4 +1,4 @@
-# **Resident Management System - Backend**
+# Unit Manager - Backend
 
 ## What I Learned
 
@@ -115,18 +115,6 @@ The system also features secure authentication via **JWT**, ensuring data protec
 
 - **Default Status**:
   - New users are assigned a default status of `active`.
-
----
-
-## **Technologies Used**
-- **Node.js**: Runtime environment.
-- **Express**: Web framework.
-- **TypeScript**: Static typing.
-- **MongoDB**: NoSQL database.
-- **Mongoose**: ODM for MongoDB.
-- **bcrypt**: Password hashing.
-- **jsonwebtoken (JWT)**: Authentication.
-- **dotenv**: Environment variable management.
 
 ---
 
